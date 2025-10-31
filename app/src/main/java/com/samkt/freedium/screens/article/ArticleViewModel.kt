@@ -26,10 +26,15 @@ class ArticleViewModel : ViewModel() {
                 .responseString { _, _, result ->
                     when (result) {
                         is Result.Success -> {
-                            _articleScreenState.update {
-                                ArticleScreenUiState.Success(
-                                    extractArticleWithMetadata(result.get())
-                                )
+                            val content = extractArticleWithMetadata(result.get())
+                            if (content.content.size <= 1) {
+                                _articleScreenState.update { ArticleScreenUiState.Error("Error occurred, please try again") }
+                            } else {
+                                _articleScreenState.update {
+                                    ArticleScreenUiState.Success(
+                                        content = content
+                                    )
+                                }
                             }
                         }
 

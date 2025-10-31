@@ -1,5 +1,6 @@
 package com.samkt.freedium.screens.article
 
+import android.content.ClipData
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -38,6 +39,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -45,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.samkt.freedium.R
 
 @Composable
 fun ArticleScreen(
@@ -98,7 +105,18 @@ fun ArticleScreenContent(
             targetState = articleScreenState
         ) { articleScreenState ->
             when (articleScreenState) {
-                is ArticleScreenUiState.Error -> {}
+                is ArticleScreenUiState.Error -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            articleScreenState.message,
+                            fontFamily = FontFamily.Serif
+                        )
+                    }
+                }
+
                 ArticleScreenUiState.Idle -> {}
                 ArticleScreenUiState.Loading -> {
                     Box(
@@ -161,7 +179,6 @@ fun ArticleScreenContent(
                                     is ArticleItem.Code -> {
                                         CodeBlock(
                                             code = item.content,
-                                            language = item.language,
                                             modifier = Modifier.padding(bottom = 16.dp)
                                         )
                                     }
@@ -178,10 +195,10 @@ fun ArticleScreenContent(
 @Composable
 fun CodeBlock(
     code: String,
-    language: String,
     modifier: Modifier = Modifier
 ) {
     var isCopied by remember { mutableStateOf(false) }
+    val clipboard = LocalClipboardManager.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -198,25 +215,18 @@ fun CodeBlock(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Default.DateRange,
+                    painter = painterResource(R.drawable.ic_code),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(16.dp)
                 )
-                Text(
-                    text = language.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 TextButton(
                     onClick = {
-                        // Copy to clipboard
-                        // ClipboardManager.setText(AnnotatedString(code))
                         isCopied = true
+                        clipboard.setText(AnnotatedString(code))
                     },
                     colors = ButtonDefaults.textButtonColors(
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
