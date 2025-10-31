@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -51,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.samkt.freedium.R
 
 @Composable
@@ -168,11 +170,13 @@ fun ArticleScreenContent(
                                     }
 
                                     is ArticleItem.Image -> {
-                                        Box(
+                                        AsyncImage(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(900.dp)
-                                                .background(Color.Cyan)
+                                                .padding(bottom = 16.dp),
+                                            model = item.url,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop
                                         )
                                     }
 

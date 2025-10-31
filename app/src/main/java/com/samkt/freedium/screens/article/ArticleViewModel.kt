@@ -79,35 +79,47 @@ fun extractArticleWithMetadata(htmlString: String): Article {
     return Article(title, articleContent, author, tags)
 }
 
+
 fun parseArticleContent(htmlString: String): List<ArticleItem> {
     val doc = Jsoup.parse(htmlString)
     val articleElement = doc.selectFirst(".main-content")
     val items = mutableListOf<ArticleItem>()
 
-    articleElement?.children()?.forEach { element ->
+    if (articleElement == null) {
+        items.add(ArticleItem.Text("Article not found", TextType.NORMAL))
+        return items
+    }
+
+
+    articleElement.select("*").forEach { element ->
         when {
             element.tagName() == "img" -> {
                 val imgUrl = element.attr("src")
-                items.add(ArticleItem.Image(imgUrl))
+                if (imgUrl.isNotBlank()) {
+                    items.add(ArticleItem.Image(imgUrl))
+
+                    val figcaption = element.nextElementSibling()
+                    if (figcaption?.tagName() == "figcaption") {
+                        items.add(ArticleItem.Text(figcaption.text(), TextType.NORMAL))
+                    }
+                }
             }
 
             element.tagName() == "pre" -> {
                 val codeElement = element.selectFirst("code")
                 val codeContent = codeElement?.text() ?: element.text()
                 val language = codeElement?.className()?.findLanguage() ?: "text"
-                items.add(ArticleItem.Code(codeContent, language))
+                if (codeContent.isNotBlank()) {
+                    items.add(ArticleItem.Code(codeContent, language))
+                }
             }
 
-            element.tagName() == "p" -> {
+            element.tagName() == "p" && element.hasText() -> {
                 items.add(ArticleItem.Text(element.text(), TextType.PARAGRAPH))
             }
 
-            element.tagName().matches("h[1-6]".toRegex()) -> {
+            element.tagName().matches("h[1-6]".toRegex()) && element.hasText() -> {
                 items.add(ArticleItem.Text(element.text(), TextType.HEADING))
-            }
-
-            element.hasText() -> {
-                items.add(ArticleItem.Text(element.text(), TextType.NORMAL))
             }
         }
     }
